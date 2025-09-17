@@ -25,6 +25,7 @@ import {
 import { Upload, FileText, CheckCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import Captcha from "@/components/ui/captcha";
 
 interface ResumeAuditModalProps {
   children: React.ReactNode;
@@ -47,6 +48,7 @@ const ResumeAuditModal = ({ children }: ResumeAuditModalProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   const { toast } = useToast();
 
   const form = useForm<FormData>({
@@ -107,6 +109,15 @@ const ResumeAuditModal = ({ children }: ResumeAuditModalProps) => {
       return;
     }
 
+    if (!captchaToken) {
+      toast({
+        title: "Captcha Required",
+        description: "Please complete the captcha verification.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -150,6 +161,7 @@ const ResumeAuditModal = ({ children }: ResumeAuditModalProps) => {
       // Reset form
       form.reset();
       setSelectedFile(null);
+      setCaptchaToken(null);
       setIsOpen(false);
 
     } catch (error) {
@@ -183,7 +195,7 @@ const ResumeAuditModal = ({ children }: ResumeAuditModalProps) => {
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
           {/* File Upload */}
           <div className="space-y-2">
-            <Label htmlFor="resume">Resume Upload <span className="text-red-500">*</span></Label>
+            <Label htmlFor="resume">Resume Upload *</Label>
             <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-logo-blue transition-colors">
               <input
                 type="file"
@@ -219,7 +231,7 @@ const ResumeAuditModal = ({ children }: ResumeAuditModalProps) => {
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Full Name <span className="text-red-500">*</span></FormLabel>
+                  <FormLabel>Full Name *</FormLabel>
                   <FormControl>
                     <Input {...field} />
                   </FormControl>
@@ -232,7 +244,7 @@ const ResumeAuditModal = ({ children }: ResumeAuditModalProps) => {
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email <span className="text-red-500">*</span></FormLabel>
+                  <FormLabel>Email *</FormLabel>
                   <FormControl>
                     <Input {...field} type="email" />
                   </FormControl>
@@ -247,7 +259,7 @@ const ResumeAuditModal = ({ children }: ResumeAuditModalProps) => {
             name="phone"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Phone Number <span className="text-red-500">*</span></FormLabel>
+                <FormLabel>Phone Number</FormLabel>
                 <FormControl>
                   <Input {...field} type="tel" />
                 </FormControl>
@@ -263,7 +275,7 @@ const ResumeAuditModal = ({ children }: ResumeAuditModalProps) => {
               name="currentRole"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Current Role <span className="text-red-500">*</span></FormLabel>
+                  <FormLabel>Current Role</FormLabel>
                   <FormControl>
                     <Input {...field} placeholder="e.g., Software Engineer" />
                   </FormControl>
@@ -349,8 +361,17 @@ const ResumeAuditModal = ({ children }: ResumeAuditModalProps) => {
                 <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
                 Industry-specific suggestions
               </li>
+              <li className="flex items-center">
+                <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
+                Free follow-up consultation
+              </li>
             </ul>
           </div>
+
+          <Captcha 
+            onVerify={setCaptchaToken}
+            onExpire={() => setCaptchaToken(null)}
+          />
 
           <div className="flex flex-col sm:flex-row gap-3">
             <Button
